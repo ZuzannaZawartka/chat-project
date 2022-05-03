@@ -75,8 +75,11 @@ async function recognize(req, res) {
     fileServer.serve(req, res);
 }
 
+const PORT = process.env.PORT || 3000;
+
+
 if (require.main.children) {
-    http.createServer(recognize).listen(8080);
+    http.createServer(recognize).listen(PORT);
 } else {
     users.forEach(e => {
         let res = e.response;
