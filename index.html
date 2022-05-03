@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" src="http://code.jquery.com/jquery-latest.js"></script>
+    <script src="jquery.tinyscrollbar.js"></script>
+    <script src="/emoi.js"></script>
+    <title>Chat</title>
+    <style>
+        body {
+            background-color: #0A2E36;
+        }
+
+        #chat-window {
+            margin: 0 auto;
+            width: 70vw;
+            height: 70vh;
+            background-color: #D6D9CE;
+            border-radius: 3px;
+        }
+
+        #chat {
+            margin: 0 auto;
+            width: 65vw;
+            height: 62vh;
+            background-color: #eaede2e2;
+            overflow-y: scroll;
+
+        }
+
+        #chat-input {
+            margin: 0 auto;
+            width: 70vw;
+            height: 8vh;
+            background-color: #b6baac;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px 10px 3px 3px;
+            border-color: #14CC60;
+        }
+
+        #chat-input-1 {
+            width: 50vw;
+            height: 4vh;
+            border: 0;
+        }
+
+        #login-input {
+            width: 20vw;
+            height: 3.5vh;
+            border: 0;
+            background-color: #b6baac;
+            border-bottom: 2px solid white;
+        }
+
+        button {
+            border: 0;
+            background-color: #27FB6B;
+            height: 4vh;
+            padding: 0vh 2vw 0vh 2vw;
+            margin-left: 1vw;
+
+        }
+
+        #login {
+            position: absolute;
+            margin: 0;
+            padding: 0;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #454645;
+            display: flex;
+            align-items: center;
+            align-content: center;
+        }
+
+        #login-window {
+            width: 40vw;
+            height: 40vh;
+            background-color: #b6baac;
+            margin: 0 auto;
+            border-radius: 10px;
+            border-bottom: 10px solid #14CC60;
+            display: flex;
+            align-items: center;
+
+        }
+
+        #forms {
+            margin: 0 auto;
+        }
+
+
+        ::-webkit-scrollbar {
+            width: 10px;
+            position: relative;
+            left: 100%;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #14CC60;
+        }
+    </style>
+
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+
+</head>
+
+<body>
+    <div id="login">
+        <div id="login-window">
+            <div id="forms">
+                <input id="login-input" type="text">
+                <button id="login-button">Zaloguj</button>
+            </div>
+
+        </div>
+    </div>
+    <div id="chat-window">
+        <div id="chat">
+            <div><a>Wpisz /help aby dowiedzieć się więcej</a></div>
+        </div>
+        <div id="chat-input">
+            <input id="chat-input-1" type="text" name="message">
+            <button id="send-button">Send</button>
+        </div>
+    </div>
+    <div id="subscribe"></div>
+
+    </div>
+
+
+
+    <script>
+        let user;
+        let admin = {
+            nick: "Administrator",
+            color: "#fc0307",
+        }
+        document.getElementById("login-button").addEventListener("click", async function () {
+            user = document.getElementById("login-input").value
+            await changeNick(user)
+        })
+
+        async function changeNick(user) {
+            if (user != "") {
+                let response = await fetch('Login?user=' + user, {
+                    method: 'POST',
+                });
+
+                if (response.status == 404) {
+                    alert("Taki user juz istnieje")
+                } else {
+                    document.getElementById("login").style.display = "none"
+                    chat()
+                }
+
+            }
+        }
+
+
+        function checkTextEmoij(text) {
+            let words2 = [];
+            let words = text.split(' ');
+            if (words) {
+                words.forEach((word) => {
+                    let word1 = word;
+                    if (word in emojiMap) {
+                        word1 = emojiMap[word];
+                    }
+                    words2.push(word1);
+                });
+            }
+            return words2.join(' ');
+        };
+
+
+        function chat() {
+
+            function click() {
+                let message = document.getElementById('chat-input-1').value;
+                if (message) {
+                    document.getElementById('chat-input-1').value = '';
+                    sendMessage(message);
+                }
+            }
+
+
+            window.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    click()
+                }
+
+            });
+
+            document.getElementById("send-button").onclick = function () {
+                click()
+            };
+            function sendMessage(message) {
+                fetch('sendMessage?user=' + user, {
+                    method: 'POST',
+                    body: message
+                });
+            }
+
+            function showMessage(message, user) {
+                let messageElem = document.createElement('div');
+                let nick = document.createElement('a');
+                nick.textContent = user.nick + " : "
+                nick.style.color = user.color
+                messageElem.append(nick);
+                messageElem.append(checkTextEmoij(message))
+                document.getElementById('chat').append(messageElem);
+            }
+
+            function recogniseCommand(text, user) {
+
+                let text2 = text.split(" ")
+                console.log(text2)
+                if (text2[0] == "/users") {
+                    text = ""
+                    for (let i = 1; i < text2.length; i++) {
+                        text += text2[i] + " "
+                    }
+                    console.log(text)
+                    text += " - Komenda wywołana przez " + user.nick
+                    showMessage(text, admin)
+
+                } else if (text2[0] == "/quit") {
+                    location.reload();
+
+                } else if (text2[0] == "/help") {
+                    text = "Dostępne Komendy : /quit , /users, /color, /help"
+                    showMessage(text, admin)
+                }
+                else if (text2[0] == "/color") {
+                    text = "Kolor uzytkownika " + user.nick + " został zmieniony"
+                    showMessage(text, admin)
+                } else if (text.startsWith("/")) {
+                    text = "Komenda nie rozpoznana - wywołana przez użytkownika " + user.nick
+                    showMessage(text, admin)
+                }
+                else {
+                    showMessage(text, user)
+                }
+            };
+
+            // Receiving messages with long polling
+            async function receiveMessage() {
+
+                let response = await fetch('getMessage?user=' + user);
+
+                if (response.status == 502) {
+                    //timeout connection
+                    await receiveMessage();
+                } else if (response.status != 200) {
+                    //Error
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await receiveMessage();
+                } else {
+                    //message
+                    try {
+                        let { message, usr } = await response.json();
+                        recogniseCommand(message, usr);
+                    } catch (error) {
+
+                    }
+                    await receiveMessage();
+                }
+            }
+
+            receiveMessage();
+        }
+        // Sending messages, a simple POST
+
+
+
+    </script>
+</body>
+
+</html>
