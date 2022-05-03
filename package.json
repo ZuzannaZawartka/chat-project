@@ -2,5 +2,8 @@
   "dependencies": {
     "node-static": "^0.7.11",
     "tinyscrollbar": "^2.4.2"
+  },
+  "scripts": {
+    "start": "node server2.js"
   }
 }
