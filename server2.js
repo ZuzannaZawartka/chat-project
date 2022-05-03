@@ -3,11 +3,12 @@ let url = require('url');
 let static = require('node-static');
 let fileServer = new static.Server('.');
 let users = [];
-
+let zmiana = false
+let curName;
 async function recognize(req, res) {
+
     let urlParsed = url.parse(req.url, true);
     let user = users.find(u => u.nick === urlParsed.query.user);
-
     //GET
     if (urlParsed.pathname == '/getMessage') {
         //add to user object current response
@@ -18,12 +19,16 @@ async function recognize(req, res) {
     //POST
     if (urlParsed.pathname == '/sendMessage' && req.method == 'POST') {
         req.setEncoding('utf8');
+
         let message = '';
         req.on('data', function (chunk) {
             message += chunk;
         }).on('end', function () {
 
             let text2 = message.split(" ")
+
+
+
             if (text2[0] == "/users") {
                 obj = "/users Użytkownicy obecni : "
                 users.forEach(user => {
@@ -42,12 +47,25 @@ async function recognize(req, res) {
                 })
                 message = "/color"
             }
-
-
+            user = users.find(u => u.nick === urlParsed.query.user);
             let usr = {
                 color: user.color,
                 nick: user.nick,
             }
+
+            if (text2[0] == "/quit") {
+                console.log(user.nick)
+                console.log("WYSZEDL")
+                console.log(users.length)
+                usr = {
+                    color: user.color,
+                    nick: user.nick,
+                }
+                users = users.filter(us => us.nick != user.nick)
+                console.log(users.length)
+            }
+
+
             users.forEach(e => {
                 let res = e.response;
                 res.end(JSON.stringify({ message, usr }))
@@ -69,6 +87,7 @@ async function recognize(req, res) {
             res.end()
         }
         //RETURN 404 IF USER EXISTS
+
     }
 
 
@@ -80,9 +99,14 @@ const PORT = process.env.PORT || 3000;
 
 if (require.main.children) {
     http.createServer(recognize).listen(PORT);
+    console.log(PORT)
+
+
 } else {
     users.forEach(e => {
         let res = e.response;
         res.end()
     })
 }
+
+

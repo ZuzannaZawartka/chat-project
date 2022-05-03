@@ -8,6 +8,17 @@
     <script type="text/javascript" src="http://code.jquery.com/jquery-latest.js"></script>
     <script src="jquery.tinyscrollbar.js"></script>
     <script src="/emoi.js"></script>
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-latest.min.js"></script>
+    <!-- build:js jquery.tinyscrollbar.js -->
+    <script type="text/javascript" src="jquery.tinyscrollbar.js"></script>
+    <!-- /build -->
+    <link rel="stylesheet" href="tinyscrollbar.css" type="text/css" media="screen" />
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#chat').tinyscrollbar();
+        });
+    </script>
     <title>Chat</title>
     <style>
         body {
@@ -94,25 +105,6 @@
 
         #forms {
             margin: 0 auto;
-        }
-
-
-        ::-webkit-scrollbar {
-            width: 10px;
-            position: relative;
-            left: 100%;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #888;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #14CC60;
         }
     </style>
 
@@ -210,7 +202,19 @@
             document.getElementById("send-button").onclick = function () {
                 click()
             };
-            function sendMessage(message) {
+            async function sendMessage(message) {
+
+                let text2 = message.split(" ")
+
+                if (text2[0] == "/quit") {
+                    location.reload();
+                }
+
+                if (text2[0] == "/czaryMary") {
+                    document.body.style.backgroundColor = "#ff0000"
+                    alert("ZSŁ to nie Hogwart tutaj nikt nie czaruje")
+                }
+
                 fetch('sendMessage?user=' + user, {
                     method: 'POST',
                     body: message
@@ -227,8 +231,8 @@
                 document.getElementById('chat').append(messageElem);
             }
 
-            function recogniseCommand(text, user) {
-
+            function recogniseCommand(text, usr) {
+                console.log(usr.nick)
                 let text2 = text.split(" ")
                 console.log(text2)
                 if (text2[0] == "/users") {
@@ -237,25 +241,31 @@
                         text += text2[i] + " "
                     }
                     console.log(text)
-                    text += " - Komenda wywołana przez " + user.nick
+                    text += " - Komenda wywołana przez " + usr.nick
                     showMessage(text, admin)
 
                 } else if (text2[0] == "/quit") {
-                    location.reload();
+                    //location.reload();
+                    text = "Użytkownik " + usr.nick + " opuścił chat"
+                    showMessage(text, admin)
 
                 } else if (text2[0] == "/help") {
-                    text = "Dostępne Komendy : /quit , /users, /color, /help"
+                    text = "Dostępne Komendy : /quit , /users, /color, /help, /czaryMary"
                     showMessage(text, admin)
                 }
                 else if (text2[0] == "/color") {
-                    text = "Kolor uzytkownika " + user.nick + " został zmieniony"
+                    text = "Kolor uzytkownika " + usr.nick + " został zmieniony"
                     showMessage(text, admin)
-                } else if (text.startsWith("/")) {
-                    text = "Komenda nie rozpoznana - wywołana przez użytkownika " + user.nick
+                } else if (text2[0] == "/czaryMary") {
+                    text = "Uzytkownik " + usr.nick + " został czerwoną mrówką"
+                    showMessage(text, admin)
+                }
+                else if (text.startsWith("/")) {
+                    text = "Komenda nie rozpoznana - wywołana przez użytkownika " + usr.nick
                     showMessage(text, admin)
                 }
                 else {
-                    showMessage(text, user)
+                    showMessage(text, usr)
                 }
             };
 
